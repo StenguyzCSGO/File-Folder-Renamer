@@ -2,32 +2,74 @@
 setlocal enabledelayedexpansion
 
 :main
-cls
 set /p path="Path to rename file or folder: "
-set /p prefix="New name start with: "
+set /p choice="Choose what to rename (F for files, D for directories, B for both): "
 set /A filesNb=1
 set /A foldersNb=1
 
 if not exist "%path%" (
-    echo Le chemin n'existe pas. Réessayez.
+    echo Path doesn't exist
     pause
     goto main
 )
 
-echo Renaming ...
-
-for %%a in ("%path%\*") do (
-    set "oldName=%%~nxa"
-    set "newName=!prefix!!filesNb!%%~xa"
-    ren "%%a" "!newName!"
-    echo [FILE] !oldName! -^> !newName!
-    set /A filesNb+=1
+if /i "%choice%"=="B" (
+    set /p prefix_files="New name start with for files: "
+    set /p prefix_dirs="New name start with for directories: "
+) else (
+    set /p prefix="New name start with: "
 )
 
-echo Renaming finished
+echo Renaming ...
 echo.
-set /p choice="Press 'C' to continue or any other key to exit: "
-if /i "%choice%"=="C" (
+
+if /i "%choice%"=="F" (
+    for %%a in ("%path%\*") do (
+        if not exist "%%a\" (
+            set "oldName=%%~nxa"
+            set "newName=!prefix!!filesNb!%%~xa"
+            ren "%%a" "!newName!"
+            echo [FILE] !oldName! -^> !newName!
+            set /A filesNb+=1
+        )
+    )
+)
+
+if /i "%choice%"=="D" (
+    for /d %%a in ("%path%\*") do (
+        set "oldName=%%~nxa"
+        set "newName=!prefix!!foldersNb!"
+        ren "%%a" "!newName!"
+        echo [DIR] !oldName! -^> !newName!
+        set /A foldersNb+=1
+    )
+)
+
+if /i "%choice%"=="B" (
+    for %%a in ("%path%\*") do (
+        if not exist "%%a\" (
+            set "oldName=%%~nxa"
+            set "newName=!prefix_files!!filesNb!%%~xa"
+            ren "%%a" "!newName!"
+            echo [FILE] !oldName! -^> !newName!
+            set /A filesNb+=1
+        )
+    )
+
+    for /d %%a in ("%path%\*") do (
+        set "oldName=%%~nxa"
+        set "newName=!prefix_dirs!!foldersNb!"
+        ren "%%a" "!newName!"
+        echo [DIR] !oldName! -^> !newName!
+        set /A foldersNb+=1
+    )
+)
+
+echo.
+echo Renaming finished
+set /p continueChoice="Press 'C' to continue or press any other key to quit "
+if /i "%continueChoice%"=="C" (
+    echo.
     goto main
 )
 
